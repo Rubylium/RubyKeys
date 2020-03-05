@@ -32,9 +32,12 @@ Citizen.CreateThread(function()
     end
 end)
 
+
+
+
 -- Controls
 Citizen.CreateThread(function()
-    DecorRegister("lock_status", 2)
+    --DecorRegister("lock_status", 2)
     --DecorRegisterLock()
     while true do
         Wait(0)
@@ -45,14 +48,14 @@ Citizen.CreateThread(function()
             for k,v in pairs(OwnedVehTable) do
                 if v == NearPlate then
                     found = true
-                    print(DecorGetBool(NearVeh, "lock_status"))
+                    --print(DecorGetBool(NearVeh, "lock_status"))
                     --if DecorExistOn(NearVeh, "lock_status") and DecorGetBool(NearVeh, "lock_status") then
                     if GetVehicleDoorLockStatus(NearVeh) == 2 then
-                        DecorSetBool(NearVeh, "lock_status", false)
+                        --DecorSetBool(NearVeh, "lock_status", false)
                         LockVehicle(NearVeh, false)
                         print("Unlocked")
                     else
-                        DecorSetBool(NearVeh, "lock_status", true)
+                        --DecorSetBool(NearVeh, "lock_status", true)
                         LockVehicle(NearVeh, true)
                         print("Locked")
                     end
