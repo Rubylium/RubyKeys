@@ -10,29 +10,32 @@ AddEventHandler("RS_KEY:GiveKey", function(plaque)
     end
     if not exist then
         table.insert(OwnedVehTable, plaque)
-        Popup("~r~Tu à reçu les clé du véhicule "..plaque)
+        Popup("~r~Tu à reçu les clés du véhicule "..plaque)
     end
 end)
 
 
 
 -- Opti pour évité que ça spam
-local NearVeh = nil
-local NearPlate
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(1500)
-        --if not IsPedInAnyVehicle(GetPlayerPed(-1), false) then
-            NearVeh = GetClosestVehicle(GetEntityCoords(GetPlayerPed(-1)))
-            NearPlate = GetVehicleNumberPlateText(NearVeh)
-        --else
-        --    NearVeh = GetVehiclePedIsIn(GetPlayerPed(-1), false)
-        --    NearPlate = GetVehicleNumberPlateText(NearVeh)
-        --end
+
+function GetNearestPlate()
+    local NearVeh = GetClosestVehicle(GetEntityCoords(GetPlayerPed(-1)))
+    local NearPlate = GetVehicleNumberPlateText(NearVeh)
+    local NearStatus = IsNear(NearVeh)
+    return NearPlate, NearStatus
+end
+
+function IsNear(veh)
+    local pPed = GetPlayerPed(-1)
+    local pCoords = GetEntityCoords(pPed)
+    local vCoords = GetEntityCoords(veh)
+    local dst = GetDistanceBetweenCoords(pCoords, vCoords, true)
+    if dst <= 10.0 then
+        return true
+    else
+        return false
     end
-end)
-
-
+end
 
 
 -- Controls
@@ -43,54 +46,55 @@ Citizen.CreateThread(function()
         Wait(0)
         DisableControlAction(0, 303, true)
         if IsDisabledControlJustPressed(0, 303) then
-            print(NearPlate)
-            local found = false
-            for k,v in pairs(OwnedVehTable) do
-                if v == NearPlate then
-                    found = true
-                    --print(DecorGetBool(NearVeh, "lock_status"))
-                    --if DecorExistOn(NearVeh, "lock_status") and DecorGetBool(NearVeh, "lock_status") then
-                    if GetVehicleDoorLockStatus(NearVeh) == 2 then
-                        --DecorSetBool(NearVeh, "lock_status", false)
-                        LockVehicle(NearVeh, false)
-                        print("Unlocked")
-                    else
-                        --DecorSetBool(NearVeh, "lock_status", true)
-                        LockVehicle(NearVeh, true)
-                        print("Locked")
+            local NearPlate, Near = GetNearestPlate()
+            if Near then
+                local found = false
+                for k,v in pairs(OwnedVehTable) do
+                    if v == NearPlate then
+                        found = true
+                        --print(DecorGetBool(NearVeh, "lock_status"))
+                        --if DecorExistOn(NearVeh, "lock_status") and DecorGetBool(NearVeh, "lock_status") then
+                        if GetVehicleDoorLockStatus(NearVeh) == 2 then
+                            --DecorSetBool(NearVeh, "lock_status", false)
+                            LockVehicle(NearVeh, false)
+                        else
+                            --DecorSetBool(NearVeh, "lock_status", true)
+                            LockVehicle(NearVeh, true)
+                        end
                     end
                 end
+                if not found then
+                    Popup("~r~Tu n'a pas les clés du véhicule.")
+                end
             end
-            if not found then
-                Popup("~r~Tu n'a pas les clés du véhicule.")
-            end 
         end
         
     end
 end)
 
-Citizen.CreateThread(function()
-    while true do
-        Wait(3000)
-        local _c = 0
-        for veh in EnumerateVehicles() do
-            --if DecorExistOn(veh, "lock_status") and DecorGetBool(veh, "lock_status") then
-            --    --print(GetVehicleNumberPlateText(veh).." - fermé")
-            --    SetVehicleDoorsLocked(veh, 2)
-            --    SetVehicleDoorsLockedForAllPlayers(veh, 1)
-            --else
-            --    --print(GetVehicleNumberPlateText(veh).." - Ouvert")
-            --    SetVehicleDoorsLocked(veh, 1)
-            --    SetVehicleDoorsLockedForAllPlayers(veh, 0)
-            --end
-            SetEntityAsMissionEntity(veh, 1, 1)
-            _c = (_c + 1) % 10
-            if _c == 0 then
-                Wait(0)
-            end
-        end
-    end
-end)
+-- Not Used for now
+--Citizen.CreateThread(function()
+--    while true do
+--        Wait(3000)
+--        local _c = 0
+--        for veh in EnumerateVehicles() do
+--            --if DecorExistOn(veh, "lock_status") and DecorGetBool(veh, "lock_status") then
+--            --    --print(GetVehicleNumberPlateText(veh).." - fermé")
+--            --    SetVehicleDoorsLocked(veh, 2)
+--            --    SetVehicleDoorsLockedForAllPlayers(veh, 1)
+--            --else
+--            --    --print(GetVehicleNumberPlateText(veh).." - Ouvert")
+--            --    SetVehicleDoorsLocked(veh, 1)
+--            --    SetVehicleDoorsLockedForAllPlayers(veh, 0)
+--            --end
+--            SetEntityAsMissionEntity(veh, 1, 1)
+--            _c = (_c + 1) % 10
+--            if _c == 0 then
+--                Wait(0)
+--            end
+--        end
+--    end
+--end)
 
 
 function Popup(txt)
@@ -103,7 +107,7 @@ end
 
 function LockVehicle(veh, status)
     if not status then
-        exports['rs_notif']:Notify('true', 'Véhicule ouvert')
+        exports['rs_notif']:Notify('true', 'Véhicule ouvert') -- Retirer cette ligne si vous l'utilisé sur votre serveur
         SetVehicleDoorsLocked(veh, 1)
         SetVehicleDoorsLockedForAllPlayers(veh, 0)
         SetVehicleLights(veh, 2)
@@ -116,7 +120,7 @@ function LockVehicle(veh, status)
         Wait(400)
         SetVehicleLights(veh, 0)
     else
-        exports['rs_notif']:Notify('false', 'Véhicule fermé')
+        exports['rs_notif']:Notify('false', 'Véhicule fermé') -- Retirer cette ligne si vous l'utilisé sur votre serveur
         SetVehicleDoorsLocked(veh, 2)
         SetVehicleDoorsLockedForAllPlayers(veh, 1)
         SetVehicleLights(veh, 2)
