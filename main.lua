@@ -1,4 +1,14 @@
 local OwnedVehTable = {}
+
+Citizen.CreateThread(function()
+    TriggerServerEvent("RS_KEY:GetRegisteredKeys")
+end)
+
+RegisterNetEvent("RS_KEY:GetRegisteredKeys")
+AddEventHandler("RS_KEY:GetRegisteredKeys", function(keys)
+    OwnedVehTable = keys
+end)
+
 RegisterNetEvent("RS_KEY:GiveKey")
 AddEventHandler("RS_KEY:GiveKey", function(plaque)
     local exist = false
