@@ -21,6 +21,7 @@ AddEventHandler("RS_KEY:GiveKey", function(plaque)
     if not exist then
         table.insert(OwnedVehTable, plaque)
         Popup("~r~Tu à reçu les clés du véhicule "..plaque)
+        TriggerServerEvent("RS_KEY:RegisterKey", OwnedVehTable)
     end
 end)
 
