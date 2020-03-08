@@ -33,7 +33,7 @@ function GetNearestPlate()
     local NearVeh = GetClosestVehicle(GetEntityCoords(GetPlayerPed(-1)))
     local NearPlate = GetVehicleNumberPlateText(NearVeh)
     local NearStatus = IsNear(NearVeh)
-    return NearPlate, NearStatus
+    return NearPlate, NearVeh, NearStatus
 end
 
 function IsNear(veh)
@@ -50,6 +50,9 @@ end
 
 
 -- Controls
+local ClosedVehicle = {}
+
+
 Citizen.CreateThread(function()
     --DecorRegister("lock_status", 2)
     --DecorRegisterLock()
@@ -57,7 +60,9 @@ Citizen.CreateThread(function()
         Wait(0)
         DisableControlAction(0, 303, true)
         if IsDisabledControlJustPressed(0, 303) then
-            local NearPlate, Near = GetNearestPlate()
+            local NearPlate, NearVeh, Near = GetNearestPlate()
+            print(NearPlate)
+            print(Near)
             if Near then
                 local found = false
                 for k,v in pairs(OwnedVehTable) do
